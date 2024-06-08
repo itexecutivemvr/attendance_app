@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Attendance</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f8ff;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            text-align: left;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        input[type="text"],
+        input[type="date"],
+        input[type="time"],
+        input[type="hidden"] {
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #008cba;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        @media (max-width: 500px) {
+            .container {
+                padding: 20px;
+                max-width: 90%;
+            }
+            input[type="text"],
+            input[type="date"],
+            input[type="time"] {
+                padding: 8px;
+                font-size: 14px;
+            }
+            button {
+                padding: 8px;
+                font-size: 14px;
+            }
+        }
+         footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Attendance Marking</h1>
+        <form id="attendanceForm" method="post" action="{% url 'attend' %}">
+            {% csrf_token %}
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required readonly value="{{ request.user.username }}"><br>
+
+            <label for="date">Date:</label>
+            <input type="date" id="date" name="date" required readonly><br>
+
+            <label for="time">Time:</label>
+            <input type="time" id="time" name="time" required readonly><br>
+
+            <label for="location">Location:</label>
+            <input type="text" id="location" name="location" required readonly><br>
+
+            <input type="hidden" id="latitude" name="latitude">
+            <input type="hidden" id="longitude" name="longitude">
+
+            <button type="button" onclick="fetchDateTimeLocation()">TAP PLEASE</button>
+        </form>
+    </div>
+    <footer>
+        <p>&copy; 2024 MVRCCRI Design. All rights reserved.</p>
+    </footer>
+
+    <script>
+        function fetchDateTimeLocation() {
+            try {
+                const currentDate = new Date().toISOString().split('T')[0];
+                const currentTime = new Date().toTimeString().split(' ')[0];
+
+                // Update the date and time input fields
+                document.getElementById('date').value = currentDate;
+                document.getElementById('time').value = currentTime;
+
+                // Fetch the actual location
+                navigator.geolocation.getCurrentPosition(position => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Update the hidden latitude and longitude fields
+                    document.getElementById('latitude').value = latitude;
+                    document.getElementById('longitude').value = longitude;
+
+                    // Reverse geocode to get the place name
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            const placeName = data.display_name || `Latitude: ${latitude}, Longitude: ${longitude}`;
+                            document.getElementById('location').value = placeName;
+
+                            // Submit the form
+                            document.getElementById('attendanceForm').submit();
+                        })
+                        .catch(error => {
+                            console.error('Error fetching location name:', error);
+                            document.getElementById('location').value = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                            document.getElementById('attendanceForm').submit();
+                        });
+                }, error => {
+                    console.error('Error getting location:', error);
+                });
+            } catch (error) {
+                console.error('Error fetching date and time:', error);
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            {% if messages %}
+                {% for message in messages %}
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Success',
+                        text: '{{ message }}'
+                    });
+                {% endfor %}
+            {% endif %}
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #f8f9fa; /* Light gray background */
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            position: relative; /* Added position relative */
+        }
+        h1 {
+            font-size: 24px;
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #17a2b8; /* Turquoise */
+            color: white; /* White text */
+            font-weight: bold;
+        }
+        tr:hover {
+            background-color: #e9ecef; /* Light gray on hover */
+        }
+        .icon {
+            font-size: 20px;
+            color: #28a745; /* Green */
+            margin-right: 5px;
+        }
+        /* Colorful buttons */
+        input[type="date"],
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #17a2b8; /* Turquoise border */
+            background-color: #f8f9fa; /* Light gray background */
+            color: #17a2b8; /* Turquoise text */
+            outline: none;
+        }
+        input[type="date"]:hover,
+        input[type="text"]:hover {
+            background-color: #e9ecef; /* Light gray background on hover */
+        }
+        input[type="date"]:focus,
+        input[type="text"]:focus {
+            border-color: #007bff; /* Blue border on focus */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Blue shadow on focus */
+        }
+
+        /* Home button */
+        .home-btn {
+            display: inline-block;
+            padding: 5px 10px; /* Adjust padding for smaller size */
+            text-align: center;
+            background-color: #007bff; /* Blue */
+            color: white; /* White text */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none; /* Remove default underline */
+            font-size: 14px; /* Adjust font size as needed */
+            position: absolute;
+            top: 20px; /* Adjust vertical position */
+            right: 20px; /* Adjust horizontal position */
+        }
+
+        .home-btn:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        /* Footer styles */
+        footer {
+            text-align: center;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Dashboard</h1>
+        <a href="/" class="home-btn">Home</a><br>
+        <label for="usernameFilter">Filter by Username:</label>
+        <input type="text" id="usernameFilter" name="usernameFilter" placeholder="Enter username">
+        <label for="startDateFilter">Start Date:</label>
+        <input type="date" id="startDateFilter" name="startDateFilter">
+        <label for="endDateFilter">End Date:</label>
+        <input type="date" id="endDateFilter" name="endDateFilter">
+        <table id="attendanceTable">
+            <thead>
+                <tr>
+                    <th>Username</th>
+                    <th>Date</th>
+                    <th>Time</th>
+                    <th>Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for log in attendance_data %}
+                <tr>
+                    <td>{{ log.username }}</td>
+                    <td>{{ log.current_date }}</td>
+                    <td>{{ log.current_time }}</td>
+                    <td>{{ log.location }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2024 MVRCCRI Design. All rights reserved.</p>
+    </footer>
+
+    <script>
+        document.getElementById('usernameFilter').addEventListener('input', filterRows);
+        document.getElementById('startDateFilter').addEventListener('change', filterRows);
+        document.getElementById('endDateFilter').addEventListener('change', filterRows);
+
+        function filterRows() {
+            var usernameFilter = document.getElementById('usernameFilter').value.toLowerCase();
+            var startDate = new Date(document.getElementById('startDateFilter').value);
+            var endDate = new Date(document.getElementById('endDateFilter').value);
+            var rows = document.querySelectorAll('#attendanceTable tbody tr');
+
+            rows.forEach(function(row) {
+                var username = row.cells[0].textContent.toLowerCase();
+                var date = new Date(row.cells[1].textContent); // Assuming date is in the second cell
+
+                var usernameMatch = username.includes(usernameFilter);
+                var dateMatch = (isNaN(startDate) || date >= startDate) && (isNaN(endDate) || date <= endDate);
+
+                if (usernameMatch && dateMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
+    </script>
+
+</body>
+</html>
+
+
+
